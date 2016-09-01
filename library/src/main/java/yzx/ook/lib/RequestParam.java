@@ -70,7 +70,7 @@ public class RequestParam {
     
     /* iterate string params */
     void iteratorString(KeyValueIteratorListener iteratorListener){
-        if(iteratorListener != null)
+        if(iteratorListener != null && !stringMap.isEmpty())
             for (Map.Entry<String, List<String>> entry : stringMap.entrySet())
                 for (String item : ((entry.getValue() != null) ?entry.getValue() : new ArrayList<String>(0)))
                     iteratorListener.onIterator(entry.getKey() , item);
@@ -78,7 +78,7 @@ public class RequestParam {
 
     /* iterator file params */
     void iteratorFile(KeyFileIteratorListener iteratorListener){
-        if(iteratorListener == null)
+        if(iteratorListener == null || fileMap.isEmpty())
             return;
         for (Map.Entry<String, File> entry : fileMap.entrySet())
             iteratorListener.onIterator(entry.getKey(),entry.getValue());

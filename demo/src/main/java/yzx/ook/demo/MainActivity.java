@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        /* 取消全部请求 */
         client.cancelAll();
         super.onDestroy();
     }
@@ -65,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(String data) {
                 Toast.makeText(MainActivity.this, data, Toast.LENGTH_SHORT).show();
             }
-
             public void onFailure(int httpCode) {
                 Toast.makeText(MainActivity.this, "" + httpCode, Toast.LENGTH_SHORT).show();
             }
@@ -96,16 +96,19 @@ public class MainActivity extends AppCompatActivity {
     public void download(View view){
         final TextView tv = (TextView) view;
         String url = "http://pic.qiantucdn.com/58pic/19/94/04/91U58PICT89_1024.jpg";
-        client.download(url, new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/aaaaaaa.jpg"), true, new OKDownLoadCallback() {
-            public void onComplete(File file) {
-                Toast.makeText(MainActivity.this, "over", Toast.LENGTH_SHORT).show();
-            }
-            public void onError(int errCode) {
-                Toast.makeText(MainActivity.this, "error : "+ errCode , Toast.LENGTH_SHORT).show();
-            }
-            public void onProgress(int current) {
-                tv.setText(current+"");
-            }
+        client.download(url
+                , new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/aaaaaaa.jpg")
+                , true /* 这个参数表示是否断线续传 */
+                , new OKDownLoadCallback() {
+                        public void onComplete(File file) {
+                            Toast.makeText(MainActivity.this, "over", Toast.LENGTH_SHORT).show();
+                        }
+                        public void onError(int errCode) {
+                            Toast.makeText(MainActivity.this, "error : "+ errCode , Toast.LENGTH_SHORT).show();
+                        }
+                        public void onProgress(int current) {
+                            tv.setText(current+"");
+                        }
         });
     }
 

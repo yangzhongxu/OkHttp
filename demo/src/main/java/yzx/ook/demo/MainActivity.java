@@ -25,6 +25,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
+    @Override
+    protected void onDestroy() {
+        client.cancelAll();
+        super.onDestroy();
+    }
+
 
     /* get 请求 */
     public void get(View view){

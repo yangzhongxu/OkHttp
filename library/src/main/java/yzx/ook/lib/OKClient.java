@@ -2,6 +2,7 @@ package yzx.ook.lib;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -91,15 +92,17 @@ public class OKClient {
             public void onResponse(Call call, Response response) throws IOException {
                 if(call.isCanceled()) return ;
                 if(response.isSuccessful()){
+                    long total;
+                    try{ total = Long.parseLong(response.header("Content-Length")); }
+                    catch (Exception e){ total = 0; }
                     InputStream input = response.body().byteStream();
-                    final long total = input.available() + hasDownLen;
                     BufferedInputStream in = new BufferedInputStream(input);
-                    byte[] buffer = new byte[1024];
+                    byte[] buffer = new byte[1024*8];
                     long hasWriteLen = hasDownLen;
                     int len;
                     RandomAccessFile out = new RandomAccessFile(targetFile, "rwd");
-                    out.seek(hasWriteLen);
-                    long lastPublishTime = System.currentTimeMillis() - 333;
+                    out.skipBytes((int)hasWriteLen);
+                    long lastPublishTime = System.currentTimeMillis() - 334;
                     while((len = in.read(buffer)) != -1) {
                         out.write(buffer, 0, len);
                         hasWriteLen += len;
@@ -150,6 +153,7 @@ public class OKClient {
 
 
     private void publishProgress(final OKDownLoadCallback callback, final long total , final long current){
+        Log.e("---->>",total +"    " + current);
             mHandler.post(new Runnable() {
                 public void run() {
                     try{ callback.onProgress((int)(1000 * current / total)); }

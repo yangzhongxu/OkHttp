@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
     /* 下载 */
     public void download(View view){
         final TextView tv = (TextView) view;
-        String url = "http://a.hiphotos.baidu.com/zhidao/pic/item/91ef76c6a7efce1bbdbd91d8ae51f3deb48f6509.jpg";
+        String url = "http://pic.qiantucdn.com/58pic/19/94/04/91U58PICT89_1024.jpg";
         client.download(url, new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/aaaaaaa.jpg"), true, new OKDownLoadCallback() {
             public void onComplete(File file) {
                 Toast.makeText(MainActivity.this, "over", Toast.LENGTH_SHORT).show();

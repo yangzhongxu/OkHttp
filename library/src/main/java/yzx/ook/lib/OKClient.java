@@ -2,12 +2,10 @@ package yzx.ook.lib;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -73,7 +71,7 @@ public class OKClient {
 
         String rangeHeaderValue = null;
         if(goon && Util.isFileUseful(targetFile)){
-            rangeHeaderValue = "byte="+targetFile.length()+"-";
+            rangeHeaderValue = "bytes="+targetFile.length()+"-";
         } else {
             targetFile.delete();
             goon = false;
@@ -82,7 +80,7 @@ public class OKClient {
         final long hasDownLen = goon ? targetFile.length() : 0;
 
         Request.Builder builder = new Request.Builder().url(url).get();
-        if(goon) builder.addHeader("RANGE", rangeHeaderValue);
+        if(goon) builder.addHeader("Range", rangeHeaderValue);
 
         CancelAble cancelAble = new CancelAble();
         cancelAble.call = client.newCall(builder.build());
@@ -95,8 +93,7 @@ public class OKClient {
                     long total;
                     try{ total = Long.parseLong(response.header("Content-Length")); }
                     catch (Exception e){ total = 0; }
-                    InputStream input = response.body().byteStream();
-                    BufferedInputStream in = new BufferedInputStream(input);
+                    BufferedInputStream in = new BufferedInputStream(response.body().byteStream());
                     byte[] buffer = new byte[1024*8];
                     long hasWriteLen = hasDownLen;
                     int len;
@@ -153,11 +150,12 @@ public class OKClient {
 
 
     private void publishProgress(final OKDownLoadCallback callback, final long total , final long current){
-        Log.e("---->>",total +"    " + current);
             mHandler.post(new Runnable() {
                 public void run() {
-                    try{ callback.onProgress((int)(1000 * current / total)); }
-                    catch(Exception e){ callback.onProgress(1000); }
+                    try{
+                        int p = (int)(1000 * current / total);
+                        callback.onProgress(p >1000 ? 1000 : (p <0 ? 0 : p));
+                    } catch(Exception e){ callback.onProgress(1000); }
                 }
             });
     }

@@ -12,7 +12,7 @@ import java.util.Map;
 public class RequestParam {
 
     private final HashMap<String,List<String>> stringMap = new HashMap<>(0);
-    private final HashMap<String,File> fileMap = new HashMap<>(0);
+    private final ArrayList<FileWrapper> fileList = new ArrayList<>(0);
 
 
     /**
@@ -30,19 +30,12 @@ public class RequestParam {
      */
     public void addFile(String key , File file){
         if(Util.isFileUseful(file))
-            fileMap.put(key,file);
+            fileList.add(new FileWrapper(file,key));
     }
 
 
-    /* internal */
-    HashMap<String, List<String>> getStringMap() {
-        return stringMap;
-    }
+    /* ==========================internal========================== */
 
-    /* internal */
-    HashMap<String, File> getFileMap() {
-        return fileMap;
-    }
 
     /* internal */
     String getQueryString(){
@@ -62,9 +55,10 @@ public class RequestParam {
         return sb.toString();
     }
 
+
     /* is upload file */
     boolean hasFile(){
-        return !fileMap.isEmpty();
+        return !fileList.isEmpty();
     }
 
     
@@ -78,11 +72,14 @@ public class RequestParam {
 
     /* iterator file params */
     void iteratorFile(KeyFileIteratorListener iteratorListener){
-        if(iteratorListener == null || fileMap.isEmpty())
+        if(iteratorListener == null || fileList.isEmpty())
             return;
-        for (Map.Entry<String, File> entry : fileMap.entrySet())
-            iteratorListener.onIterator(entry.getKey(),entry.getValue());
+        for (FileWrapper item : fileList)
+            iteratorListener.onIterator(item.key,item.file);
     }
+
+
+    /* ============================class============================ */
 
 
     interface KeyFileIteratorListener{
@@ -91,6 +88,12 @@ public class RequestParam {
 
     interface KeyValueIteratorListener{
         void onIterator(String key,String value);
+    }
+
+    class FileWrapper{
+        public FileWrapper(File file,String key){this.file=file;this.key=key;}
+        File file;
+        String key;
     }
 
 }

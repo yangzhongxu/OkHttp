@@ -5,6 +5,8 @@ import android.os.Looper;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -21,8 +23,9 @@ import okhttp3.Response;
  */
 public class OKClient {
 
-    private  OkHttpClient client;
+    private final OkHttpClient client;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
+    private final ArrayList<WeakReference<CancelAble>> callList = new ArrayList<>(0);
 
     public OKClient(OkHttpClient client){
         this.client = client;
@@ -32,15 +35,36 @@ public class OKClient {
     /*=================== method======================*/
 
 
-    public void get(String url , RequestParam params , OKRequestCallback callback){
+    public CancelAble get(String url , RequestParam params , OKRequestCallback callback){
         String queryString = params == null?"":params.getQueryString();
         Request request = new Request.Builder().url(url+queryString).get().build();
-        execCallback(client.newCall(request),callback);
+
+        CancelAble cancelAble = new CancelAble();
+        cancelAble.call = client.newCall(request);
+        callList.add(new WeakReference<>(cancelAble));
+
+        execCallback(cancelAble.call,callback);
+        return cancelAble;
     }
 
-    public void post(String url,RequestParam params , OKRequestCallback callback){
+
+    public CancelAble post(String url,RequestParam params , OKRequestCallback callback){
         Request request = (params != null && params.hasFile()) ? getFilePostRequest(url,params) : getStringPostRequest(url,params);
-        execCallback(client.newCall(request),callback);
+
+        CancelAble cancelAble = new CancelAble();
+        cancelAble.call = client.newCall(request);
+        callList.add(new WeakReference<>(cancelAble));
+
+        execCallback(cancelAble.call , callback);
+        return cancelAble;
+    }
+
+
+    public void cancelAll(){
+        for (WeakReference<CancelAble> item : callList)
+            if(item.get()!=null)
+                item.get().cancel();
+        callList.clear();
     }
 
 
@@ -79,6 +103,7 @@ public class OKClient {
         call.enqueue(new Callback() {
             public void onResponse(Call call, Response response) throws IOException {
                 if(callback == null) return ;
+                if(call.isCanceled())  return ;
 
                 final boolean isSuccess = response.isSuccessful();
                 final String bodyString = response.body().string();
@@ -93,7 +118,6 @@ public class OKClient {
             }
             public void onFailure(Call call, IOException e) {
                 if(callback == null) return ;
-
                 if(call.isCanceled()) return ;
 
                 mHandler.post(new Runnable() {

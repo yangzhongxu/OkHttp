@@ -152,7 +152,8 @@ public class OKClient {
     private void publishProgress(final OKDownLoadCallback callback, final long total , final long current){
             mHandler.post(new Runnable() {
                 public void run() {
-                    callback.onProgress((int)(1000 * current / total));
+                    try{ callback.onProgress((int)(1000 * current / total)); }
+                    catch(Exception e){ callback.onProgress(1000); }
                 }
             });
     }
